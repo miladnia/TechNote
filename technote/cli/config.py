@@ -1,0 +1,3 @@
+from ..config import MODULE_NAME
+
+LINUX_SERVICE_NAME = MODULE_NAME

@@ -19,7 +19,7 @@ dev: ## Run the development servers
 .PHONY: test
 test: ## Run all tests
 	$(MAKE) backend_requirements
-	.venv/bin/pytest -v
+	.venv/bin/python -m pytest -v
 
 .PHONY: db
 db: ## Ensure the database is ready
@@ -78,7 +78,9 @@ upload_test: ## Upload the created package to test.pypi.org
 
 .PHONY: install_test
 install_test: ## Install the package from test.pypi.org
-	@pipx install --index-url https://test.pypi.org/simple pytechnote
+	@pipx install --index-url https://test.pypi.org/simple/ \
+	              --pip-args="--extra-index-url https://pypi.org/simple/" \
+				  pytechnote
 
 .PHONY: build_web
 build_web: ## Build the web client

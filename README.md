@@ -18,31 +18,20 @@ TechNote is a self-hosted, distraction-free Markdown-based note-taking app built
 
 ### Installation
 
-```bash
-git clone https://github.com/miladnia/technote.git
-cd technote
-make install
+1. Install TechNote via `pipx`:
+
+```sh
+pipx install pytechnote
 ```
 
-> **Requirements:** Python `>= 3.10`, Node `>= 18.20`, and pipx.
+2. Set up TechNote to start automatically on login:
 
-### Run the server
-
-Start the TechNote server:
-
-```bash
-technote
-```
-
-By default, the server runs on `http://localhost:8087`.  
-Customize with:
-
-```bash
-technote --host=0.0.0.0 --port=PORT
+```sh
+technote autostart enable
 ```
 
 > [!TIP]
-> To prevent the browser from opening automatically, add the `--no-browser` flag.
+> You can also use `technote run` to run TechNote directly in your terminal without enabling autostart.
 
 
 ## 🖥️ Usage Tips
