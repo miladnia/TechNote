@@ -1,22 +1,16 @@
 # TechNote
 
-**TechNote** — your Markdown notes, beautifully organized.
+**TechNote lets you access your local Markdown files in your browser.**
 
-TechNote is a self-hosted, distraction-free Markdown-based note-taking app built with Flask and React. Lightweight, fast, and customizable — designed for developers who prefer to keep their notes in plain text and under their control.
+Add the directories that contain your Markdown files (`.md`), and you'll be able to read them rendered in your browser. You can also search across all your files, or edit them directly in Markdown.
+
+It's a lightweight app built with Python and React. It's named TechNote because I use it as a knowledge base for my tech notes, which are actually a bunch of Markdown files (~150) in a single directory.
 
 ![TechNote preview](./docs/technote_note_preview.png)
 
-### Features
-
-- 📂 **Local Files, Your Way** — _Open any folder of Markdown (`.md`) notes directly, no import or sync required._
-- 🛡️ **Own Your Notes** — _Files are standard Markdown, stored locally — no vendor lock-in, no surprises._
-- 🧭 **Effortless Navigation** — _Browse folders, jump between notes, and navigate through headings with ease._
-- 🔍 **Fast Full-Text Search** — _Quickly search across all your notes._
-- 🖥️ **Responsive Interface** — _Clean, distraction-free design that works beautifully on desktop and mobile._
-
 ## 🚀 Get Started
 
-### Installation
+### How to install
 
 1. Install TechNote via `pipx`:
 
@@ -33,54 +27,61 @@ technote autostart enable
 > [!TIP]
 > You can also use `technote run` to run TechNote directly in your terminal without enabling autostart.
 
+### How to use
 
-## 🖥️ Usage Tips
+First, open http://localhost:8087. Select **Open Directory** in the sidebar and choose a directory containing your Markdown files, or even an empty directory. Once you open the directory, you'll see a list of your files in the sidebar. Select any file to see it rendered. You can also edit your files or create new files right in the browser.
 
-Use the **Open Directory** button in the sidebar to open a directory containing your Markdown (`.md`) files. If you don't have one yet, you can create an empty directory (e.g., `~/Documents/notes/tech_notes`) and open it. Once opened, you’ll see an option next to the directory name to create new notes.
+Select the options button next to the directory's name in the sidebar to create new files or open other directories.
 
-> [!TIP]
-> No Markdown notes yet? Click **"Try with example notes"** after launching!
-
+---
 
 ## ✨ How It Works
 
-- **Rendering:** TechNote aims to keep everything explicit and transparent. It simply renders your existing Markdown files as HTML documents. No hidden metadata. No extra files. No surprises. You have full control over your content.
-- **Caches:** To improve performance, notes are cached as HTML and updated automatically when you edit them.
-- **The database:** TechNote uses a lightweight SQLite database to store minimal metadata — such as unique IDs and display names for notes — and the paths to selected directories. Deleting the database will **not** affect your notes.
+### What technologies are used?
 
+The backend is written in Python, using [Flask][flask] and [Gunicorn][gunicorn] to handle HTTP requests, while parts of the UI are built with [React][react].
 
-## 🛠 Built With
+### How does it render Markdown to HTML?
 
-- [**Flask**][flask] — Powers the back end with a lightweight and flexible Python framework.
-- [**Gunicorn**][gunicorn] — Serves the app efficiently in production environments.
-- [**SQLite**][sqlite] — Stores meta data about notes and directories in a single lightweight file.
-- [**Pandoc**][pandoc] — Converts Markdown into beautiful, structured HTML.
-- [**Pypandoc**][pypandoc] — A Python wrapper around Pandoc for seamless integration.
-- [**React**][react] — Enhances the web interface with dynamic, interactive components.
-- [**Bootstrap**][bootstrap] — Provides a clean, responsive foundation for the UI.
+We use [Pandoc][pandoc] and [Pypandoc][pypandoc] to render the Markdown files.
 
+### Is there any caching?
 
-## 💡 Creators
+We render each Markdown file once and reuse the result the next time you access that file. The cached version is updated whenever the file changes on the filesystem.
 
-Milad Abdollahnia
+### Why does it need a database?
 
-- <https://github.com/miladnia>
-- <https://twitter.com/xmiladnia>
+We use a lightweight [SQLite][sqlite] database to store minimal metadata — such as unique IDs and display names for notes — and the paths to selected directories.
 
+### How to build and run for development?
+
+```sh
+git clone https://github.com/miladnia/technote.git
+cd technote
+make env # Prepare the development environment
+```
+
+Use `make dev` to run the frontend and backend development servers at the same time, and then open http://127.0.0.1:5000/.
+
+This is also possible to run TechNote without installation using `make run`.
+
+**Requirements:**
+
+- Python `>= 3.10`
+- Node `>= 18.20`
+- [make][gnu_make]
+
+---
 
 ## ⚖️ License
 
-TechNote is an open-source software licensed under the [MIT License][mit].  
-See the [LICENSE](./LICENSE) file for details.
+TechNote is open-source software licensed under the [MIT License](./LICENSE).
 
 
-[mit]: https://opensource.org/licenses/MIT
 [flask]: https://github.com/pallets/flask
 [gunicorn]: https://github.com/benoitc/gunicorn
 [react]: https://github.com/facebook/react
 [pandoc]: https://github.com/jgm/pandoc
 [pypandoc]: https://github.com/JessicaTegner/pypandoc
-[pandoc_install]: https://pypi.org/project/pypandoc/#Installing-pandoc
 [sqlite]: https://github.com/sqlite/sqlite
-[bootstrap]: https://github.com/twbs/bootstrap/
-[make]: https://www.gnu.org/software/make/
+[gnu_make]: https://www.gnu.org/software/make/
