@@ -1,5 +1,4 @@
-include README.md
-include LICENSE
 recursive-include technote/instance *
 recursive-include technote/static *
 recursive-include technote/templates *
+prune tests

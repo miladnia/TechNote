@@ -11,6 +11,7 @@ from technote.config import (
     APP_MODULE,
     APP_NAME,
     MODULE_NAME,
+    PACKAGE_NAME,
     SERVER_HOST,
     SERVER_PORT,
 )
@@ -26,7 +27,7 @@ from .server import (
 )
 
 try:
-    __version__ = version("technote")
+    __version__ = version(PACKAGE_NAME)
 except PackageNotFoundError:
     __version__ = "0.0.0-dev"  # running from source, not installed
 
