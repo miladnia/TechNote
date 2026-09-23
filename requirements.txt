@@ -1,7 +1,0 @@
-Flask==3.0.3
-gunicorn==23.0.0
-pypandoc==1.14
-pytest==8.3.5
-build==1.2.2.post1
-twine==6.1.0
-setuptools==84.0.0

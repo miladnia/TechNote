@@ -11,7 +11,7 @@ help: ## Print info about all commands
 .PHONY: env
 env: ## Prepare the development environment
 	python3 -m venv .venv
-	.venv/bin/python -m pip install -r requirements.txt
+	.venv/bin/python -m pip install -e ".[dev]"
 	npm install
 	$(MAKE) instance
 	$(MAKE) frontend
@@ -27,14 +27,14 @@ run: ## Run TechNote without installation
 
 .PHONY: test
 test: ## Run all tests
-	.venv/bin/python -m pytest -v
+	.venv/bin/python -m pytest
 
 .PHONY: instance
 instance: ## Remove the "instance/" directory, create a new database
 	@rm -rf technote/instance/
-	@echo "🧹 The instance cleaned up!"
+	@echo "🧹 Instance cleaned up"
 	@.venv/bin/python scripts/init_db.py
-	@echo "🗄️ A new database created!"
+	@echo "🗄️ Database created"
 
 .PHONY: frontend
 frontend: ## Build frontend
@@ -44,26 +44,41 @@ frontend: ## Build frontend
 .PHONY: install
 install: ## Install the current state of TechNote as a package
 	pipx install . --force
-	@echo "🥰 Successfully installed!"
+	@echo "🥰 Successfully installed"
 	@printf "🚀 Use the \033[01;32m%s\033[0m command to run the app.\n" technote
 
 .PHONY: package
 package: ## Create package
+	@command -v pyproject-build >/dev/null 2>&1 || { \
+		echo "Error: build is not installed."; \
+		echo "Install it with: pipx install build"; \
+		exit 1; \
+	}
 	$(MAKE) instance
 	$(MAKE) frontend
 	@rm -rf build/ *.egg-info/ dist/
-	.venv/bin/python -m build
-	@echo "📦 Successfully built the package!"
+	pyproject-build
+	@echo "📦 Package built in dist/"
 
 .PHONY: upload
 upload: ## Upload the created package to pypi.org
-	@.venv/bin/twine upload dist/*
-	@echo "🚀 Successfully uploaded!"
+	@command -v twine >/dev/null 2>&1 || { \
+		echo "Error: twine is not installed."; \
+		echo "Install it with: pipx install twine"; \
+		exit 1; \
+	}
+	twine upload dist/*
+	@echo "🚀 Successfully uploaded"
 
 .PHONY: upload_test
 upload_test: ## Upload the created package to test.pypi.org
-	@.venv/bin/twine upload --repository testpypi dist/*
-	@echo "🚀 Successfully uploaded!"
+	@command -v twine >/dev/null 2>&1 || { \
+		echo "Error: twine is not installed."; \
+		echo "Install it with: pipx install twine"; \
+		exit 1; \
+	}
+	twine upload --repository testpypi dist/*
+	@echo "🚀 Successfully uploaded"
 
 .PHONY: install_test
 install_test: ## Install the package from test.pypi.org
@@ -89,4 +104,4 @@ clean: ## Remove build files, cache files, packages, and the database
 		technote/__pycache__/ \
 		tests/__pycache__/ \
 		.pytest_cache/
-	@echo "🧹 Cleaned up!"
+	@echo "🧹 Cleaned up"
