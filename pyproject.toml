@@ -54,7 +54,7 @@ include = ["technote", "technote.*"]
 include-package-data = true
 
 [tool.bumpver]
-current_version = "0.2.1.dev1"
+current_version = "0.2.1"
 version_pattern = "MAJOR.MINOR.PATCH[.TAG[NUM]]"
 commit_message  = "release {new_version}"
 commit          = true
