@@ -6,7 +6,7 @@ Add the directories that contain your Markdown files (`.md`), and you'll be able
 
 It's a lightweight app built with Python and React. It's named TechNote because I use it as a knowledge base for my tech notes, which are actually a bunch of Markdown files (~150) in a single directory.
 
-![TechNote preview](https://raw.githubusercontent.com/miladnia/TechNote/refs/tags/v0.2.0/docs/technote_note_preview.png)
+![TechNote preview](https://raw.githubusercontent.com/miladnia/TechNote/refs/tags/0.2.0/docs/technote_note_preview.png)
 
 ## 🚀 Get Started
 

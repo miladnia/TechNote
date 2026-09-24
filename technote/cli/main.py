@@ -2,16 +2,15 @@ import argparse
 import logging
 import platform
 import sys
-from importlib.metadata import PackageNotFoundError, version
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+from technote import __version__
 from technote.config import (
     APP_DESCRIPTION,
     APP_MODULE,
     APP_NAME,
     MODULE_NAME,
-    PACKAGE_NAME,
     SERVER_HOST,
     SERVER_PORT,
 )
@@ -25,11 +24,6 @@ from .server import (
     Server,
     ServerError,
 )
-
-try:
-    __version__ = version(PACKAGE_NAME)
-except PackageNotFoundError:
-    __version__ = "0.0.0-dev"  # running from source, not installed
 
 PROG = MODULE_NAME
 logger = logging.getLogger(__name__)

@@ -105,3 +105,42 @@ clean: ## Remove build files, cache files, packages, and the database
 		tests/__pycache__/ \
 		.pytest_cache/
 	@echo "🧹 Cleaned up"
+
+# $(1) = bumpver flags, e.g. --patch --tag=dev
+define bump
+	.venv/bin/python -m bumpver update $(1) --dry
+	@printf "Apply this bump? [y/N] "; read ans; [ "$$ans" = "y" ] || { echo "Aborted."; exit 1; }
+	.venv/bin/python -m bumpver update $(1)
+endef
+
+.PHONY: bump-patch
+bump-patch: ## Increment the patch number, then create a commit with a tag
+	$(call bump,--patch)
+
+.PHONY: bump-minor
+bump-minor: ## Increment the minor version, then create a commit with a tag
+	$(call bump,--minor)
+
+.PHONY: bump-major
+bump-major: ## Increment the major version, then create a commit with a tag
+	$(call bump,--major)
+
+.PHONY: bump-patch-dev
+bump-patch-dev: ## Start a patch dev cycle (0.2.1 -> 0.2.2.dev)
+	$(call bump,--patch --tag=dev --no-commit --no-tag-commit)
+
+.PHONY: bump-minor-dev
+bump-minor-dev: ## Start a minor dev cycle  (0.2.1 -> 0.3.0.dev)
+	$(call bump,--minor --tag=dev --no-commit --no-tag-commit)
+
+.PHONY: bump-major-dev
+bump-major-dev: ## Start a major dev cycle  (0.2.1 -> 1.0.0.dev)
+	$(call bump,--major --tag=dev --no-commit --no-tag-commit)
+
+.PHONY: bump-dev
+bump-dev: ## Increment dev number (0.2.2.dev -> 0.2.2.dev1)
+	$(call bump,--tag-num --no-commit --no-tag-commit)
+
+.PHONY: bump-dev-final
+bump-dev-final: ## Drop the dev suffix (0.2.2.dev1 -> 0.2.2), then create a commit with a tag
+	$(call bump,--tag=final)

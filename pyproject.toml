@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytechnote"
-version = "0.2.1-dev1"
+dynamic = ["version"]
 authors = [
     { name = "Milad Nia", email = "miladniaa@gmail.com" },
 ]
@@ -36,7 +36,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["pytest", "bumpver"]
 
 [project.urls]
 Homepage = "https://github.com/miladnia/technote"
@@ -44,8 +44,23 @@ Homepage = "https://github.com/miladnia/technote"
 [project.scripts]
 technote = "technote.cli.main:main"
 
+[tool.setuptools.dynamic]
+version = { attr = "technote.__version__" }
+
 [tool.setuptools.packages.find]
 include = ["technote", "technote.*"]
 
 [tool.setuptools]
 include-package-data = true
+
+[tool.bumpver]
+current_version = "0.2.1.dev1"
+version_pattern = "MAJOR.MINOR.PATCH[.TAG[NUM]]"
+commit_message  = "release {new_version}"
+commit          = true
+tag             = true
+push            = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = ['current_version = "{version}"']
+"technote/__init__.py" = ["{version}"]

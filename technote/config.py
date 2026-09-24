@@ -7,7 +7,6 @@ APP_MODULE = "technote.server:app"
 APP_NAME = "TechNote"
 APP_DESCRIPTION = "A self-hosted Markdown-based note-taking app"
 MODULE_NAME = "technote"
-PACKAGE_NAME = "pytechnote"
 NAMESPACE = "ir.miladnia.technote"
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 8087
