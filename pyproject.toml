@@ -51,8 +51,8 @@ version = { attr = "technote.__version__" }
 [tool.setuptools.packages.find]
 include = ["technote", "technote.*"]
 
-[tool.setuptools]
-include-package-data = true
+[tool.setuptools.package-data]
+technote = ["resources/**/*", "static/**/*", "templates/**/*"]
 
 [tool.bumpver]
 current_version = "0.2.1"

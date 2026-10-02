@@ -1,4 +1,0 @@
-recursive-include technote/instance *
-recursive-include technote/static *
-recursive-include technote/templates *
-prune tests
