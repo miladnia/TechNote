@@ -3,7 +3,7 @@ from pathlib import Path
 APP_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
-APP_MODULE = "technote.server:app"
+APP_MODULE = "technote.app:app"
 APP_NAME = "TechNote"
 APP_DESCRIPTION = "A self-hosted Markdown-based note-taking app"
 MODULE_NAME = "technote"

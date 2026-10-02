@@ -17,9 +17,9 @@ env: ## Prepare the development environment
 	$(MAKE) frontend
 
 .PHONY: dev
-dev: ## Run TechNote for development
+dev: ## Start Flask (debug, port 5000) and Vite dev servers
 	npm run dev &
-	.venv/bin/python -m flask --app 'technote/server.py' run --debug
+	.venv/bin/python -m flask --app 'technote/app.py' run --debug
 
 .PHONY: run
 run: ## Run TechNote without installation
