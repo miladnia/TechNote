@@ -1,16 +1,29 @@
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 
-from .helpers import api_response, release_resources, render_notfound, render_badrequest, render_vite_assets
 from . import services
+from .bootstrap import prepare_environment
+from .config import DEV_VITE_MAIN_FILE, IS_DEV, VITE_MANIFEST_FILE
 from .dtos import NoteDTO
+from .helpers import (
+    api_response,
+    release_resources,
+    render_badrequest,
+    render_notfound,
+    render_vite_dev_assets,
+    render_vite_prod_assets,
+)
 
+prepare_environment()
 app = Flask(__name__)
 
 
 @app.context_processor
 def inject_helpers():
     def assets():
-        return render_vite_assets(app.debug)
+        if IS_DEV:
+            return render_vite_dev_assets(DEV_VITE_MAIN_FILE)
+        else:
+            return render_vite_prod_assets(VITE_MANIFEST_FILE)
     return {"assets": assets}
 
 
@@ -72,21 +85,17 @@ def api_notes():
         )
     except ValueError as e:
         return api_response(message=str(e))
-    return api_response({
-        "note": NoteDTO.from_domain(note)
-    })
+    return api_response({"note": NoteDTO.from_domain(note)})
 
 
 @app.route("/list")
 def list_all():
-    return api_response( services.list_all() )
+    return api_response(services.list_all())
 
 
 @app.route("/list/<directory_id>")
 def list_directory(directory_id):
-    return api_response(
-        services.list_directory(directory_id)
-    )
+    return api_response(services.list_directory(directory_id))
 
 
 @app.route("/search")
@@ -105,9 +114,7 @@ def open():
         directory_id = services.add_directory(directory_path)
     except ValueError as e:
         return api_response(message=str(e))
-    return api_response(
-        services.list_directory(directory_id)
-    )
+    return api_response(services.list_directory(directory_id))
 
 
 @app.route("/open_example_notes", methods=["POST"])
@@ -116,9 +123,7 @@ def open_example_notes():
         directory_id = services.add_example_notes_directory()
     except ValueError as e:
         return api_response(message=str(e))
-    return api_response(
-        services.list_directory(directory_id)
-    )
+    return api_response(services.list_directory(directory_id))
 
 
 @app.route("/close", methods=["POST"])
@@ -128,9 +133,7 @@ def close():
     return api_response({})
 
 
-@app.route("/explore/", defaults={'directory': ''})
+@app.route("/explore/", defaults={"directory": ""})
 @app.route("/explore/<path:directory>")
 def explore(directory: str):
-    return api_response(
-        services.list_filesystem(directory)
-    )
+    return api_response(services.list_filesystem(directory))

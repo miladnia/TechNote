@@ -1,15 +1,21 @@
-from pathlib import Path
 import re
+from pathlib import Path
 from sqlite3 import IntegrityError
 
+import pypandoc as pandoc
 from flask import url_for
 from markupsafe import Markup
-import pypandoc as pandoc
 
-from .config import CACHE_ENABLED, CACHE_DIR, EXAMPLE_NOTES_DIR, PANDOC_TEMPLATE
-from .helpers import dbhash, get_db, prettify, query_db
+from .config import (
+    CACHE_ENABLED,
+    DB_FILE,
+    EXAMPLE_NOTES_DIR,
+    HTML_CACHE_DIR,
+    PANDOC_TEMPLATE,
+)
+from .dtos import DirectoryDTO, NavigatorDTO
 from .entities import Directory, Note
-from .dtos import DirectoryDTO, NavigatorDTO, NoteDTO
+from .helpers import dbhash, get_db, prettify, query_db
 
 
 def list_all() -> NavigatorDTO:
@@ -19,7 +25,7 @@ def list_all() -> NavigatorDTO:
      WHERE is_directory_hidden = 0
      ORDER BY directory_name
     """
-    directory_rows = query_db(query)
+    directory_rows = _query(query)
     if not directory_rows:
         return {}
 
@@ -28,13 +34,12 @@ def list_all() -> NavigatorDTO:
         return NavigatorDTO(
             directory=DirectoryDTO.from_domain(
                 directory=directories[0],
-                notes=find_notes_by_directory(directories[0].id)
+                notes=find_notes_by_directory(directories[0].id),
             )
         )
     return NavigatorDTO(
         directory_list=[
-            DirectoryDTO.from_domain(directory)
-            for directory in directories
+            DirectoryDTO.from_domain(directory) for directory in directories
         ]
     )
 
@@ -43,7 +48,7 @@ def list_directory(directory_id: str) -> NavigatorDTO:
     return NavigatorDTO(
         directory=DirectoryDTO.from_domain(
             directory=get_directory(directory_id),
-            notes=find_notes_by_directory(directory_id)
+            notes=find_notes_by_directory(directory_id),
         )
     )
 
@@ -66,18 +71,21 @@ def add_directory(directory_path: str) -> int:
     # Create a unique hash for the directory
     directory_id = dbhash(str(dir.resolve()))
 
-    with get_db() as db:
+    with _db() as db:
         # Create a new directory in the database
         try:
             query = """
             INSERT INTO directories (directory_id, directory_path, directory_name)
             VALUES (?, ?, ?)
             """
-            db.execute(query, (
-                directory_id,
-                str(dir.resolve()),
-                dir.stem,
-            ))
+            db.execute(
+                query,
+                (
+                    directory_id,
+                    str(dir.resolve()),
+                    dir.stem,
+                ),
+            )
         except IntegrityError:
             # The directory already exists in the database just ensure it is not hidden
             query = """
@@ -95,13 +103,18 @@ def add_directory(directory_path: str) -> int:
         )
         VALUES (?, ?, ?, ?)
         """
-        db.executemany(query, [(
-                dbhash(str(f.resolve())),
-                prettify(f.stem),
-                f.name,
-                directory_id,
-            ) for f in md_files
-        ])
+        db.executemany(
+            query,
+            [
+                (
+                    dbhash(str(f.resolve())),
+                    prettify(f.stem),
+                    f.name,
+                    directory_id,
+                )
+                for f in md_files
+            ],
+        )
     return directory_id
 
 
@@ -113,29 +126,32 @@ def hide_directory(directory_id):
     query = """
     UPDATE directories SET is_directory_hidden = 1 WHERE directory_id = ?
     """
-    with get_db() as db:
+    with _db() as db:
         db.execute(query, (directory_id,))
 
 
 def find_all() -> list[Note]:
-    db_rows = query_db(
+    db_rows = _query(
         "SELECT * FROM notes JOIN directories ON note_directory = directory_id ORDER BY note_directory, note_pretty_name"
     )
     return [Note.from_model(row) for row in db_rows]
 
 
 def find_notes_by_directory(directory_id: str) -> list[Note]:
-    note_rows = query_db(
+    note_rows = _query(
         "SELECT * FROM notes JOIN directories ON note_directory = directory_id WHERE directory_id = ? ORDER BY note_pretty_name",
-        (directory_id,)
+        (directory_id,),
     )
     return [Note.from_model(row) for row in note_rows]
 
 
-def get_note(note_id: str, with_content: bool = False, with_preview: bool = False) -> Note:
-    note_row = query_db(
+def get_note(
+    note_id: str, with_content: bool = False, with_preview: bool = False
+) -> Note:
+    note_row = _query(
         "SELECT * FROM notes JOIN directories ON note_directory = directory_id WHERE note_id = ?",
-        (note_id,), one=True
+        (note_id,),
+        one=True,
     )
     if note_row is None:
         raise ValueError("Note not found.")
@@ -151,7 +167,7 @@ def get_directory(directory_id: str) -> Directory:
     query = """
     SELECT * FROM directories WHERE directory_id = ?
     """
-    db_row = query_db(query, (directory_id,), one=True)
+    db_row = _query(query, (directory_id,), one=True)
     if db_row is None:
         raise ValueError("Directory not found.")
     return Directory.from_model(db_row)
@@ -173,10 +189,15 @@ def create_new_note(content: str, filename: str, directory_id: str) -> Note:
     # Create a new record for the new note in the database
     note_id = dbhash(str(note_path.resolve()))
     note_pretty_name = prettify(note_path.stem)
-    with get_db() as db:
+    with _db() as db:
         db.execute(
             "INSERT INTO notes(note_id, note_pretty_name, note_filename, note_directory) VALUES (?, ?, ?, ?)",
-            (note_id, note_pretty_name, note_path.name, directory_id,)
+            (
+                note_id,
+                note_pretty_name,
+                note_path.name,
+                directory_id,
+            ),
         )
     note = get_note(note_id)
     return note
@@ -200,18 +221,20 @@ def search(query: str):
                 if not plain_text:
                     continue
                 if not results or note.path.name != results[-1]["source"]:
-                    results.append({
-                        "source": note.path.name,
-                        "source_url": url_for("note", note_id=note.id),
-                        "occurrences": []
-                    })
+                    results.append(
+                        {
+                            "source": note.path.name,
+                            "source_url": url_for("note", note_id=note.id),
+                            "occurrences": [],
+                        }
+                    )
                 results[-1]["occurrences"].append(plain_text)
     return results
 
 
 def list_filesystem(directory: str) -> dict:
-    """ List filesystem directory. """
-    
+    """List filesystem directory."""
+
     home = Path.home().resolve()
     # Normalize the path (e.g. resolve ".." components)
     cwd = (home / directory).resolve()
@@ -228,7 +251,7 @@ def list_filesystem(directory: str) -> dict:
             "name": name,
             "path": str(path),
             "real_path": str(real_path),
-            "type": type_
+            "type": type_,
         }
 
     relative_path = cwd.relative_to(home)
@@ -238,13 +261,14 @@ def list_filesystem(directory: str) -> dict:
     sub_directories = sorted(
         [
             create_entry(p.name, relative_path / p.name, p.resolve())
-            for p in cwd.iterdir() if p.is_dir() and not p.name.startswith(".")
+            for p in cwd.iterdir()
+            if p.is_dir() and not p.name.startswith(".")
         ],
-        key=lambda entry: entry["name"]
+        key=lambda entry: entry["name"],
     )
     markdown_files = sorted(
         [create_entry(p.name, "", p.resolve(), type_="file") for p in cwd.glob("*.md")],
-        key=lambda entry: entry["name"]
+        key=lambda entry: entry["name"],
     )
 
     return {
@@ -262,8 +286,11 @@ def _render_note_content(note: Note) -> str:
     if not CACHE_ENABLED:
         return _md_to_html(note.path)
 
-    cache_file = Path(CACHE_DIR) / note.id
-    cache_expired = not cache_file.is_file() or cache_file.stat().st_mtime <= note.path.stat().st_mtime
+    cache_file = HTML_CACHE_DIR / note.id
+    cache_expired = (
+        not cache_file.is_file()
+        or cache_file.stat().st_mtime <= note.path.stat().st_mtime
+    )
     # Generate a new cache
     if cache_expired:
         html_content = _md_to_html(note.path)
@@ -277,21 +304,34 @@ def _render_note_content(note: Note) -> str:
 
 def _md_to_html(source_file) -> str:
     """Convert a Markdown file to an HTML document"""
-    return pandoc.convert_file(source_file, format="markdown", to="html5", extra_args=[
-        "--standalone",
-        f"--template={PANDOC_TEMPLATE}",
-        "--table-of-contents",
-        "--toc-depth=2"
-    ])
+    return pandoc.convert_file(
+        source_file,
+        format="markdown",
+        to="html5",
+        extra_args=[
+            "--standalone",
+            f"--template={PANDOC_TEMPLATE}",
+            "--table-of-contents",
+            "--toc-depth=2",
+        ],
+    )
 
 
 def _md_to_text(markdown: str) -> str:
     """Convert Markdown text to plain text"""
-    text = pandoc.convert_text(markdown, format="markdown", to="plain", extra_args={
-        "--wrap=none"
-    })
+    text = pandoc.convert_text(
+        markdown, format="markdown", to="plain", extra_args={"--wrap=none"}
+    )
     # Convert reference links `[title][ref]` to plain text `title`
-    text = re.sub(r'\[([^\]]+)\]\[[^\]]*\]', r'\1', text)
+    text = re.sub(r"\[([^\]]+)\]\[[^\]]*\]", r"\1", text)
     # Remove spaces, list symbols, table borders
-    text = text.strip(' \n-*+|')
+    text = text.strip(" \n-*+|")
     return text
+
+
+def _db():
+    return get_db(DB_FILE)
+
+
+def _query(query: str, args=(), one=False):
+    return query_db(DB_FILE, query, args, one)

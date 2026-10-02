@@ -1,3 +1,5 @@
+BEGIN;
+
 CREATE TABLE IF NOT EXISTS directories(
     directory_id        TEXT    PRIMARY KEY NOT NULL,
     directory_path      TEXT    NOT NULL UNIQUE,
@@ -13,3 +15,5 @@ CREATE TABLE IF NOT EXISTS notes(
     FOREIGN KEY (note_directory)
         REFERENCES directories(directory_id)
 );
+
+COMMIT;

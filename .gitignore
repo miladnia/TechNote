@@ -1,5 +1,6 @@
 # TechNote
-instance/
+.dev/
+.run/
 
 # Python setuptools
 build/

@@ -13,28 +13,28 @@ env: ## Prepare the development environment
 	python3 -m venv .venv
 	.venv/bin/python -m pip install -e ".[dev]"
 	npm install
-	$(MAKE) instance
 	$(MAKE) frontend
 
 .PHONY: dev
 dev: ## Start Flask (debug, port 5000) and Vite dev servers
 	npm run dev &
-	.venv/bin/python -m flask --app 'technote/app.py' run --debug
+	TECHNOTE_ENV=dev .venv/bin/python -m flask --app 'technote/app.py' run --debug
+
+.PHONY: clean-dev
+clean-dev: ## Delete dev data and cache
+	@rm -rf .dev
 
 .PHONY: run
-run: ## Run TechNote without installation
-	.venv/bin/python -m technote run -n
+run: ## Run TechNote without installation on port 8000
+	TECHNOTE_DATA_DIR=".run/data" TECHNOTE_CACHE_DIR=".run/cache" .venv/bin/python -m technote run -n --port 8000
+
+.PHONY: clean-run
+clean-run: ## Delete data and cache from `make run`
+	@rm -rf .run
 
 .PHONY: test
 test: ## Run all tests
 	.venv/bin/python -m pytest
-
-.PHONY: instance
-instance: ## Remove the "instance/" directory, create a new database
-	@rm -rf technote/instance/
-	@echo "🧹 Instance cleaned up"
-	@.venv/bin/python scripts/init_db.py
-	@echo "🗄️ Database created"
 
 .PHONY: frontend
 frontend: ## Build frontend
@@ -54,7 +54,6 @@ package: ## Create package
 		echo "Install it with: pipx install build"; \
 		exit 1; \
 	}
-	$(MAKE) instance
 	$(MAKE) frontend
 	@rm -rf build/ *.egg-info/ dist/
 	pyproject-build
@@ -94,7 +93,8 @@ clean: ## Remove build files, cache files, packages, and the database
 		exit 1; \
 	fi
 	@rm -rf \
-		technote/instance/ \
+		.dev/ \
+		.run/ \
 		technote/static/dist/ \
 		build/ \
 		*.egg-info/ \
