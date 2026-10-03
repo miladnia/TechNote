@@ -174,11 +174,15 @@ def _autostart_enable_command(args):
         "     start automatically on login without running the command again.\n"
         f"   - Use '{PROG} {args.command}' to check if autostart is configured correctly."
     )
-    if args.host != "0.0.0.0":
+    if args.host == "0.0.0.0":
         print(
-            f"   - Add '--host 0.0.0.0' to make TechNote available on your local network, \n"
-            f"     but notice that you should not do this on a machine with a public IP address.\n"
+            f"   - If you are deploying on a public server, you should use a reverse proxy. \n"
+            f"     Don't use '0.0.0.0' to expose TechNote directly to the Internet. \n"
             f"     See '{PROG} {args.command} {args.sub_command} --help' for more information."
+        )
+    else:
+        print(
+            "   - Set '--host 0.0.0.0' to make TechNote available on your local network."
         )
 
 
@@ -245,12 +249,17 @@ def _run_server_terminal_mode(host: str, port: int, open_browser: bool):
         print(
             "   - Add --no-browser or -n to prevent the browser from opening automatically."
         )
-    if host != "0.0.0.0":
+    if host == "0.0.0.0":
         print(
-            f"   - Set '--host 0.0.0.0' to make TechNote available on your local network, \n"
-            f"     but notice that you should not do this on a machine with a public IP address.\n"
+            f"   - If you are deploying on a public server, you should use a reverse proxy. \n"
+            f"     Don't use '0.0.0.0' to expose TechNote directly to the Internet. \n"
             f"     See '{PROG} run --help' for more information."
         )
+    else:
+        print(
+            "   - Set '--host 0.0.0.0' to make TechNote available on your local network."
+        )
+    print("\n")
 
     try:
         server.run(app=APP_MODULE)
